@@ -1,2 +1,2 @@
-# english-study
- My English study website
+# English Mind
+ My Personal English Study Project
