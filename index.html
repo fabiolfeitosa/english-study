@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EnglishMind — Free AI Tutor</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0f0e0c; --paper:#f5f0e8; --cream:#ede8d8; --gold:#c9a84c;
+  --red:#c0392b; --green:#2e7d5e; --muted:#7a7268; --border:#d4cfc0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-user-select:none;user-select:none;}
+input,textarea,button{-webkit-user-select:text;user-select:text;}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--border);background:#fff;}
+.logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;}
+.logo em{color:var(--gold);font-style:italic;}
+.badge{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--ink);color:var(--paper);padding:0.25rem 0.6rem;border-radius:2rem;}
+.layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 65px);}
+.sidebar{border-right:1px solid var(--border);padding:1rem;display:flex;flex-direction:column;gap:0.2rem;background:rgba(245,240,232,0.7);overflow-y:auto;}
+.sidebar-label{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);padding:0.8rem 0.5rem 0.3rem;}
+.nav-btn{display:flex;align-items:center;gap:0.5rem;width:100%;padding:0.65rem 0.75rem;border:none;border-radius:0.4rem;background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.8rem;color:var(--ink);text-align:left;transition:all 0.15s;-webkit-tap-highlight-color:transparent;min-height:44px;}
+.nav-btn:active{background:var(--cream);transform:scale(0.98);}
+.nav-btn.active{background:var(--ink);color:var(--paper);}
+.streak{margin-top:auto;background:var(--cream);border:1px solid var(--border);border-radius:0.6rem;padding:0.75rem;text-align:center;}
+.streak-num{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--gold);line-height:1;}
+.streak-lbl{font-size:0.65rem;color:var(--muted);margin-top:0.15rem;}
+.main{padding:1.5rem;max-width:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.section{display:none;flex-direction:column;gap:1rem;}
+.section.active{display:flex;}
+.chip-row{display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;}
+.chip{padding:0.4rem 0.85rem;border-radius:2rem;border:1.5px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:0.75rem;cursor:pointer;transition:all 0.15s;color:var(--ink);-webkit-tap-highlight-color:transparent;min-height:36px;display:flex;align-items:center;justify-content:center;}
+.chip:active{transform:scale(0.95);}
+.chip.active{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:500;}
+.card{background:#fff;border:1px solid var(--border);border-radius:0.8rem;overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,0.03);}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:0.85rem 1rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:0.5rem;}
+.card-label{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);}
+.card-body{padding:1.25rem;min-height:auto;font-size:0.9rem;line-height:1.7;}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:var(--muted);min-height:160px;font-style:italic;text-align:center;padding:1rem;}
+.empty-state span{font-size:2rem;opacity:0.4;}
+.loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;color:var(--muted);min-height:140px;font-style:italic;}
+.spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* LESSON CONTENT */
+.card-body h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:0.6rem;line-height:1.3;}
+.card-body .hl{background:#fff8e7;border-left:3px solid var(--gold);padding:0.6rem;margin:0.6rem 0;border-radius:0 0.3rem 0.3rem 0;font-family:'DM Mono',monospace;font-size:0.8rem;word-break:break-word;}
+.card-body .ex{padding:0.3rem 0;display:flex;gap:0.4rem;font-size:0.85rem;}
+.card-body .ex::before{content:'→';color:var(--gold);font-weight:700;flex-shrink:0;margin-top:0.05rem;}
+.card-body .sec{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin:0.8rem 0 0.4rem;}
+.card-body .tip{background:#f0f9f4;border:1px solid #b8deca;border-radius:0.4rem;padding:0.6rem;font-size:0.8rem;color:var(--green);margin-top:0.6rem;}
+.speak-word{background:#fff8e7;border:1px solid var(--gold);border-radius:0.25rem;padding:0.2rem 0.4rem;font-family:'DM Mono',monospace;font-size:0.75rem;cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;display:inline-block;min-height:28px;min-width:40px;display:inline-flex;align-items:center;justify-content:center;}
+.speak-word:active{background:var(--gold);color:#fff;transform:scale(0.95);}
+
+/* AUDIO PANEL */
+.audio-panel{background:var(--cream);border:1px solid var(--border);border-radius:0.6rem;padding:0.9rem;}
+.audio-title{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem;}
+.audio-word-row{display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.7rem;}
+.audio-word{padding:0.35rem 0.75rem;border:1.5px solid var(--border);border-radius:2rem;background:#fff;font-family:'DM Mono',monospace;font-size:0.75rem;cursor:pointer;transition:all 0.15s;color:var(--ink);-webkit-tap-highlight-color:transparent;min-height:36px;display:flex;align-items:center;justify-content:center;}
+.audio-word:active{border-color:var(--gold);background:#fff8e7;transform:scale(0.95);}
+.audio-word.playing{border-color:var(--green);background:#f0f9f4;color:var(--green);}
+.speed-row{display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;margin-top:0.5rem;}
+.speed-lbl{font-size:0.7rem;color:var(--muted);margin-right:0.3rem;}
+.speed-btn{padding:0.25rem 0.6rem;border:1.5px solid var(--border);border-radius:2rem;background:#fff;font-family:'DM Mono',monospace;font-size:0.65rem;cursor:pointer;transition:all 0.15s;color:var(--ink);-webkit-tap-highlight-color:transparent;min-height:32px;display:flex;align-items:center;justify-content:center;}
+.speed-btn:active{border-color:var(--gold);transform:scale(0.95);}
+.speed-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:0.4rem;padding:0.75rem 1.2rem;border:none;border-radius:0.5rem;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;min-height:44px;text-align:center;word-break:break-word;}
+.btn-dark{background:var(--ink);color:var(--paper);}
+.btn-dark:active{background:var(--gold);color:var(--ink);transform:scale(0.98);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:active{background:#25694f;transform:scale(0.98);}
+.btn:disabled{opacity:0.45;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
+.btn-row{display:flex;gap:0.5rem;flex-wrap:wrap;align-items:stretch;}
+.btn-row .btn{flex:1;min-width:120px;}
+.status{display:inline-flex;align-items:center;gap:0.3rem;font-size:0.65rem;padding:0.3rem 0.6rem;border-radius:2rem;font-family:'DM Mono',monospace;}
+.status.ok{background:#f0f9f4;color:var(--green);border:1px solid #b8deca;}
+.status.no{background:#fff5f5;color:var(--red);border:1px solid #f5c0bc;}
+.api-box{background:var(--cream);border:1px solid var(--border);border-radius:0.8rem;padding:1rem;display:flex;flex-direction:column;gap:0.6rem;}
+.api-row{display:flex;gap:0.4rem;flex-direction:column;}
+.api-input{flex:1;padding:0.7rem;border:1.5px solid var(--border);border-radius:0.4rem;font-family:'DM Mono',monospace;font-size:0.85rem;background:#fff;color:var(--ink);outline:none;min-height:44px;-webkit-appearance:none;appearance:none;}
+.api-input:focus{border-color:var(--gold);background:#fffcf0;}
+.api-note{font-size:0.75rem;color:var(--muted);line-height:1.6;}
+.api-note strong{color:var(--ink);}
+.api-lbl{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
+.q-item{margin-bottom:1.2rem;}
+.q-text{font-family:'Playfair Display',serif;font-size:0.95rem;margin-bottom:0.6rem;line-height:1.5;font-weight:500;}
+.q-opts{display:flex;flex-direction:column;gap:0.4rem;}
+.q-opt{padding:0.7rem;border:1.5px solid var(--border);border-radius:0.4rem;background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.85rem;text-align:left;transition:all 0.15s;-webkit-tap-highlight-color:transparent;min-height:44px;display:flex;align-items:center;word-break:break-word;}
+.q-opt:active:not(:disabled){border-color:var(--gold);background:#fffcf0;transform:scale(0.98);}
+.q-opt.selected{border-color:var(--gold);background:#fff8e7;font-weight:500;}
+.q-opt.correct{border-color:var(--green);background:#f0f9f4;color:var(--green);font-weight:500;}
+.q-opt.wrong{border-color:var(--red);background:#fff5f5;color:var(--red);}
+.h-item{background:var(--cream);border:1px solid var(--border);border-radius:0.5rem;padding:0.8rem;cursor:pointer;transition:all 0.15s;display:flex;justify-content:space-between;align-items:center;gap:0.5rem;-webkit-tap-highlight-color:transparent;min-height:48px;flex-wrap:wrap;}
+.h-item:active{border-color:var(--gold);transform:scale(0.98);}
+.h-topic{font-weight:500;font-size:0.85rem;text-transform:capitalize;flex:1;min-width:150px;}
+.h-sub{font-size:0.7rem;color:var(--muted);margin-top:0.2rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;}
+.h-time{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);white-space:nowrap;}
+.result-item{margin-bottom:0.9rem;padding:0.9rem;border-radius:0.4rem;font-size:0.85rem;line-height:1.6;}
+.result-item.ok{background:#f0f9f4;border:1px solid #b8deca;}
+.result-item.fail{background:#fff5f5;border:1px solid #f5c0bc;}
+.result-q{font-weight:500;margin-bottom:0.3rem;font-size:0.9rem;}
+.result-exp{border-top:1px solid rgba(0,0,0,0.07);padding-top:0.4rem;margin-top:0.4rem;color:var(--ink);font-size:0.8rem;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{animation:fadeUp 0.35s ease forwards;}
+
+/* BOTTOM NAVIGATION (Mobile) */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:#fff;border-top:1px solid var(--border);z-index:1000;display:flex;justify-content:space-around;align-items:center;-webkit-user-select:none;user-select:none;box-shadow:0 -2px 8px rgba(0,0,0,0.06);}
+.nav-item-mobile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.25rem;flex:1;height:100%;cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;color:var(--muted);font-size:0.7rem;font-family:'DM Sans',sans-serif;padding:0.5rem 0;min-width:44px;}
+.nav-item-mobile:active{transform:scale(0.95);}
+.nav-item-mobile.active{color:var(--gold);font-weight:600;}
+.nav-item-mobile span{font-size:1.2rem;}
+
+/* MOBILE OPTIMIZATIONS */
+@media(max-width:900px){
+  header{padding:0.75rem 1rem;}
+  .logo{font-size:1.1rem;}
+  .layout{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .main{padding:1rem;max-width:100%;}
+  .card{border-radius:0.6rem;}
+  .btn-row .btn{min-width:100px;}
+  .btn{padding:0.7rem 1rem;font-size:0.8rem;}
+}
+
+@media(max-width:680px){
+  html{font-size:14px;}
+  header{padding:0.6rem 0.8rem;border-bottom:2px solid var(--border);}
+  .logo{font-size:1rem;font-weight:700;}
+  .badge{display:none;}
+  .layout{grid-template-columns:1fr;min-height:calc(100vh - 50px);}
+  .sidebar{display:none !important;}
+  .main{padding:0.9rem;max-width:100%;margin:0 auto;padding-bottom:80px;}
+  .section{gap:0.8rem;}
+  .bottom-nav{display:flex;}
+  
+  /* Cards */
+  .card{border-radius:0.5rem;border:1px solid var(--border);}
+  .card-head{padding:0.75rem 0.9rem;flex-wrap:wrap;gap:0.3rem;}
+  .card-label{font-size:0.5rem;}
+  .card-body{padding:1rem;min-height:auto;}
+  
+  /* Buttons - Critical for Mobile */
+  .btn{min-height:48px;padding:0.6rem 1rem;font-size:0.8rem;border-radius:0.4rem;font-weight:600;}
+  .btn-dark{background:var(--ink);color:var(--paper);}
+  .btn-dark:active{background:var(--gold);color:var(--ink);transform:scale(0.97);}
+  .btn-row{gap:0.4rem;flex-wrap:wrap;}
+  .btn-row .btn{flex:1;min-width:calc(50% - 0.2rem);}
+  
+  /* Inputs */
+  .api-input{min-height:48px;padding:0.8rem;font-size:1rem;}
+  .api-row{flex-direction:column;}
+  
+  /* Quiz */
+  .q-opt{min-height:48px;padding:0.75rem;font-size:0.85rem;border-radius:0.35rem;}
+  .q-text{font-size:0.95rem;margin-bottom:0.5rem;}
+  .q-item{margin-bottom:1rem;}
+  
+  /* Chips */
+  .chip{min-height:40px;padding:0.5rem 0.8rem;font-size:0.75rem;border-radius:2rem;}
+  .chip-row{gap:0.35rem;}
+  
+  /* Typography */
+  .card-body h3{font-size:1rem;}
+  .card-body .hl{padding:0.6rem;font-size:0.75rem;margin:0.5rem 0;}
+  .card-body .ex{font-size:0.8rem;padding:0.3rem 0;}
+  .card-body .sec{font-size:0.55rem;margin:0.7rem 0 0.35rem;}
+  .card-body .tip{font-size:0.75rem;padding:0.5rem;}
+  
+  /* History */
+  .h-item{min-height:52px;padding:0.7rem;border-radius:0.4rem;}
+  .h-topic{font-size:0.8rem;}
+  .h-sub{font-size:0.65rem;}
+  .h-time{font-size:0.6rem;}
+  
+  /* Audio */
+  .audio-panel{padding:0.8rem;border-radius:0.4rem;}
+  .audio-word{min-height:40px;padding:0.35rem 0.7rem;font-size:0.7rem;}
+  .audio-title{font-size:0.5rem;margin-bottom:0.5rem;}
+  .speed-btn{min-height:36px;padding:0.25rem 0.5rem;font-size:0.6rem;}
+  
+  /* Status */
+  .status{font-size:0.6rem;padding:0.25rem 0.5rem;}
+  
+  /* Results */
+  .result-item{padding:0.8rem;margin-bottom:0.8rem;}
+  .result-q{font-size:0.85rem;}
+  .result-exp{font-size:0.75rem;}
+  
+  /* API Box */
+  .api-box{padding:0.9rem;border-radius:0.5rem;}
+  .api-lbl{font-size:0.5rem;}
+  .api-note{font-size:0.7rem;}
+  
+  /* Sidebar label (if shown) */
+  .sidebar-label{font-size:0.5rem;}
+  
+  /* Streak */
+  .streak{border-radius:0.4rem;padding:0.6rem;}
+  .streak-num{font-size:1.5rem;}
+  .streak-lbl{font-size:0.6rem;}
+  
+  /* Empty state */
+  .empty-state{min-height:120px;}
+  .empty-state span{font-size:1.8rem;}
+}
+
+/* Ultra-small phones (< 380px) */
+@media(max-width:380px){
+  html{font-size:13px;}
+  header{padding:0.5rem 0.6rem;}
+  .main{padding:0.7rem;}
+  .btn{padding:0.5rem 0.8rem;font-size:0.75rem;min-height:44px;}
+  .card-body{padding:0.8rem;}
+  .q-opt{padding:0.6rem;font-size:0.8rem;}
+  .api-input{padding:0.7rem;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">English<em>Mind</em></div>
+  <div class="badge">AI Tutor &#10022; Free</div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-label">Modules</div>
+    <button class="nav-btn active" id="nav-lesson" onclick="showSection('lesson')">&#128218; Lessons</button>
+    <button class="nav-btn" id="nav-quiz" onclick="showSection('quiz')">&#9999;&#65039; Quiz</button>
+    <button class="nav-btn" id="nav-hist" onclick="showSection('hist')">&#128203; History</button>
+    <div style="height:1px;background:var(--border);margin:0.75rem 0.5rem;"></div>
+    <div class="sidebar-label">Settings</div>
+    <button class="nav-btn" id="nav-settings" onclick="showSection('settings')">&#128273; API Key</button>
+    <div class="streak">
+      <div class="streak-num" id="streakNum">0</div>
+      <div class="streak-lbl">lessons today &#128293;</div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- LESSONS -->
+    <div class="section active" id="sec-lesson">
+      <div class="chip-row" id="levelRow">
+        <span style="font-size:0.8rem;color:var(--muted);">Level:</span>
+        <button class="chip active" onclick="setLevel(this,'Beginner (A1-A2)')">A1&ndash;A2</button>
+        <button class="chip" onclick="setLevel(this,'Intermediate (B1-B2)')">B1&ndash;B2</button>
+        <button class="chip" onclick="setLevel(this,'Advanced (C1-C2)')">C1&ndash;C2</button>
+      </div>
+      <div class="chip-row" id="topicRow">
+        <button class="chip active" onclick="setTopic(this,'phrasal_verbs')">Phrasal Verbs</button>
+        <button class="chip" onclick="setTopic(this,'corporate')">&#128188; Corporate</button>
+        <button class="chip" onclick="setTopic(this,'grammar')">Grammar</button>
+        <button class="chip" onclick="setTopic(this,'reading')">Reading</button>
+        <button class="chip" onclick="setTopic(this,'vocabulary')">Vocabulary</button>
+        <button class="chip" onclick="setTopic(this,'pronunciation')">&#128266; Pronunciation</button>
+        <button class="chip" onclick="setTopic(this,'idioms')">Idioms</button>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-label" id="topicLabel">PHRASAL VERBS</span>
+          <span class="status no" id="apiSmall">No API Key</span>
+        </div>
+        <div class="card-body" id="lessonBody">
+          <div class="empty-state">
+            <span>&#127891;</span>
+            <div>Choose a topic and click Generate</div>
+            <div style="font-size:0.78rem;">Set up your API Key first</div>
+          </div>
+        </div>
+      </div>
+      <div class="audio-panel" id="audioPanel" style="display:none;">
+        <div class="audio-title">&#128266; Listen &amp; Practice — click any word to hear it</div>
+        <div class="audio-word-row" id="audioWords"></div>
+        <div class="speed-row">
+          <span class="speed-lbl">Speed:</span>
+          <button class="speed-btn" onclick="setSpeed(this,0.5)">0.5&times;</button>
+          <button class="speed-btn" onclick="setSpeed(this,0.75)">0.75&times;</button>
+          <button class="speed-btn active" onclick="setSpeed(this,1.0)">1&times;</button>
+          <button class="speed-btn" onclick="setSpeed(this,1.25)">1.25&times;</button>
+          <button class="speed-btn" onclick="setSpeed(this,1.5)">1.5&times;</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-dark" id="genBtn" onclick="generateLesson()">&#10022; Generate Lesson</button>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="section" id="sec-quiz">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-label">QUIZ &mdash; TEST YOUR KNOWLEDGE</span>
+          <span id="quizScore" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);"></span>
+        </div>
+        <div class="card-body" id="quizBody">
+          <div class="empty-state">
+            <span>&#9999;&#65039;</span>
+            <div>Generate a lesson first, then come here to test yourself.</div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-dark" id="genQuizBtn" onclick="generateQuiz()">&#10022; Generate Quiz</button>
+        <button class="btn btn-green" id="submitBtn" style="display:none;" onclick="submitQuiz()">&#10003; Submit &amp; See Results</button>
+      </div>
+      <div class="card" id="resultCard" style="display:none;">
+        <div class="card-head"><span class="card-label">&#128202; Results &amp; Explanations</span></div>
+        <div class="card-body" id="resultBody"></div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="section" id="sec-hist">
+      <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);">Previous Lessons</div>
+      <div id="histList"><div style="color:var(--muted);font-size:0.85rem;font-style:italic;">No lessons yet.</div></div>
+      <div id="histDetail"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="section" id="sec-settings">
+      <div class="api-box">
+        <div class="api-lbl">API Key &mdash; Google Gemini (100% Free &#127881;)</div>
+        <div id="apiStatusBig" class="status no">&#9888; No key configured</div>
+        <div class="api-row">
+          <input class="api-input" type="password" id="apiInput" placeholder="AIza..." />
+          <button class="btn btn-dark" onclick="saveKey()" style="padding:0.6rem 1rem;">Save</button>
+        </div>
+        <div class="api-note">
+          &#129306; <strong>No credit card needed!</strong><br><br>
+          1. Go to <strong>aistudio.google.com</strong> with your Google account<br>
+          2. Click <strong>"Get API Key"</strong> &rarr; <strong>"Create API Key"</strong><br>
+          3. Copy the key (starts with <strong>AIza...</strong>) and paste above<br><br>
+          &#128274; Your key is saved <strong>only in your browser</strong>, never on any server.
+        </div>
+      </div>
+
+      <div class="api-box" style="margin-top:1.5rem;">
+        <div class="api-lbl">&#128640; Quiz Cache Management</div>
+        <div id="cacheIndicator" style="display:none;font-size:0.85rem;color:var(--green);margin-bottom:0.75rem;padding:0.6rem;background:#f0f9f4;border-radius:0.45rem;border:1px solid #b8deca;"></div>
+        <div class="api-note" style="margin-bottom:0.75rem;">
+          &#128230; Cached quizzes are stored locally in your browser to reduce API calls and save quota. Each topic+level combination saves its own quiz.<br><br>
+          <strong>Benefits:</strong> Faster loading, lower API usage, works offline for cached content.
+        </div>
+        <button class="btn btn-dark" onclick="clearQuizCache()" style="width:100%;">Clear All Cached Quizzes</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+var topic = 'phrasal_verbs';
+var level = 'Beginner (A1-A2)';
+var lastLesson = '';
+var quizData = null;
+var userAnswers = [];
+var apiKey = '';
+var todayLessons = 0;
+var savedLessons = [];
+var speechSpeed = 1.0;
+
+window.onload = function() {
+  try { apiKey = localStorage.getItem('em_key') || localStorage.getItem('em_apikey') || ''; } catch(e) {}
+  try { savedLessons = JSON.parse(localStorage.getItem('em_lessons') || '[]'); } catch(e) { savedLessons = []; }
+  try {
+    var d = localStorage.getItem('em_streak_date');
+    var today = new Date().toDateString();
+    if (d === today) { todayLessons = parseInt(localStorage.getItem('em_streak_count') || '0'); }
+    else { todayLessons = 0; localStorage.setItem('em_streak_date', today); localStorage.setItem('em_streak_count', '0'); }
+  } catch(e) {}
+  initCache(); updateCacheIndicator();
+  initMobileOptimizations();
+  updateApiUI(); updateStreak(); renderHistList();
+};
+
+// MOBILE OPTIMIZATIONS
+function initMobileOptimizations() {
+  // Prevent double-tap zoom
+  var lastTouchEnd = 0;
+  document.addEventListener('touchend', function(event) {
+    var now = Date.now();
+    if (now - lastTouchEnd <= 300 && event.touches.length == 0) {
+      event.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, false);
+  
+  // Optimize for notched phones
+  if(window.CSS && CSS.supports('padding', 'max(0px)')) {
+    if(document.body) {
+      document.body.style.paddingLeft = 'max(0px, env(safe-area-inset-left))';
+      document.body.style.paddingRight = 'max(0px, env(safe-area-inset-right))';
+    }
+  }
+  
+  // Prevent pinch zoom but allow user zoom
+  var viewport = document.querySelector('meta[name="viewport"]');
+  if(!viewport) {
+    viewport = document.createElement('meta');
+    viewport.name = 'viewport';
+    document.head.appendChild(viewport);
+  }
+  viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover');
+}
+
+function showSection(name) {
+  var ids = ['lesson','quiz','hist','settings'];
+  for (var i = 0; i < ids.length; i++) {
+    var sec = document.getElementById('sec-' + ids[i]);
+    var nav = document.getElementById('nav-' + ids[i]);
+    if (ids[i] === name) { sec.style.display = 'flex'; sec.classList.add('active'); if (nav) nav.classList.add('active'); }
+    else { sec.style.display = 'none'; sec.classList.remove('active'); if (nav) nav.classList.remove('active'); }
+  }
+}
+
+function setTopic(btn, val) {
+  topic = val;
+  var btns = document.getElementById('topicRow').getElementsByTagName('button');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  btn.classList.add('active');
+  var labels = {phrasal_verbs:'PHRASAL VERBS',corporate:'CORPORATE ENGLISH',grammar:'GRAMMAR',reading:'READING',vocabulary:'VOCABULARY',pronunciation:'PRONUNCIATION',idioms:'IDIOMS'};
+  document.getElementById('topicLabel').textContent = labels[val] || val.toUpperCase();
+  document.getElementById('audioPanel').style.display = 'none';
+}
+
+function setLevel(btn, val) {
+  level = val;
+  var btns = document.getElementById('levelRow').getElementsByTagName('button');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  btn.classList.add('active');
+}
+
+function saveKey() {
+  var val = document.getElementById('apiInput').value.trim();
+  if (!val || val.length < 10) { alert('Please paste a valid key (starts with AIza...)'); return; }
+  apiKey = val;
+  try { localStorage.setItem('em_key', apiKey); } catch(e) {}
+  updateApiUI(); showSection('lesson');
+}
+
+function updateApiUI() {
+  var big = document.getElementById('apiStatusBig'), small = document.getElementById('apiSmall');
+  if (apiKey) {
+    big.className = 'status ok'; big.textContent = 'Key configured';
+    small.className = 'status ok'; small.textContent = 'Ready';
+    document.getElementById('apiInput').value = apiKey;
+  } else {
+    big.className = 'status no'; big.textContent = 'No key';
+    small.className = 'status no'; small.textContent = 'No API Key';
+  }
+}
+
+function updateStreak() { document.getElementById('streakNum').textContent = todayLessons; }
+
+async function callGemini(prompt, maxTokens) {
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=' + apiKey;
+  var res = await fetch(url, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{maxOutputTokens:maxTokens||1000} })
+  });
+  if (!res.ok) { var err = await res.json(); throw new Error(err.error ? err.error.message : 'API error'); }
+  var data = await res.json();
+  return data.candidates[0].content.parts[0].text;
+}
+
+function cleanOutput(raw) {
+  return raw.replace(/^```html\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/i,'').trim();
+}
+
+function getRecentTitles(topicFilter) {
+  // Extract h3 titles from recent lessons of the same topic to avoid repeats
+  var titles = [];
+  for (var i = 0; i < Math.min(savedLessons.length, 15); i++) {
+    var item = savedLessons[i];
+    if (item.topic !== topicFilter) continue;
+    var m = item.content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
+    if (m) titles.push(m[1].replace(/<[^>]*>/g,'').trim());
+  }
+  return titles;
+}
+
+// Curated pronunciation sound pool — ensures wide variety
+var pronunciationSounds = [
+  // Vowels
+  '/ɪ/ vs /iː/ (ship vs sheep)',
+  '/ʊ/ vs /uː/ (full vs fool)',
+  '/æ/ (cat, bad, man) — não existe em português',
+  '/ʌ/ (cup, love, fun) — o "a" central do inglês',
+  '/ɜː/ (bird, word, nurse) — o R retroflexo',
+  '/ə/ schwa (about, butter, banana) — a vogal mais comum do inglês',
+  '/eɪ/ (cake, day, rain) — o ditongo ei',
+  '/aɪ/ (time, my, night) — o ditongo ai',
+  '/ɔɪ/ (boy, coin, noise) — o ditongo oi',
+  '/aʊ/ (now, out, house) — o ditongo au',
+  '/oʊ/ (go, home, know) — o ditongo ou americano',
+  '/ɑː/ vs /æ/ (father vs fat)',
+  '/ɒ/ vs /oʊ/ (hot vs hope)',
+  // Consonants
+  '/θ/ (think, three, bath) — o TH surdo',
+  '/ð/ (this, that, breathe) — o TH sonoro',
+  '/v/ vs /b/ (very vs berry) — confusão clássica do brasileiro',
+  '/w/ vs /v/ (wine vs vine)',
+  '/h/ (house, hello, happy) — o H aspirado',
+  '/ŋ/ (sing, ring, king) — o NG nasal final',
+  '/r/ americano (red, right, car) — o R retroflexo americano',
+  '/l/ dark L (ball, milk, people) — o L vocalizado no final',
+  '/l/ vs /r/ (light vs right, glass vs grass)',
+  '/dʒ/ vs /ʒ/ (judge vs measure)',
+  '/tʃ/ vs /ʃ/ (church vs shirt)',
+  '/s/ vs /z/ (sink vs zinc, price vs prize)',
+  '/p/ /t/ /k/ aspirados (pin, tin, kin) — aspiração inicial',
+  '/f/ vs /p/ (fat vs pat)',
+  '/m/ /n/ /ŋ/ nasais finais (sum vs sun vs sung)',
+  // Stress & rhythm
+  'Word stress: record (noun) vs record (verb)',
+  'Sentence stress e palavras átonas (I WANT to GO)',
+  'Linking words: "want to" → "wanna", "going to" → "gonna"',
+  'Weak forms: "and", "of", "for", "can" — como soam na fala real',
+  'Intonation: perguntas sim\/não vs perguntas abertas',
+  'Consonant clusters: str- (street, strong, strange)',
+  'Consonant clusters: -sts (tests, lists, costs)',
+  'Silent letters: knife, know, write, psychology',
+  'gh words: though, through, thought, tough, cough',
+  '-ed endings: /t/ (walked), /d/ (played), /ɪd/ (wanted)',
+  '-s endings: /s/ (cats), /z/ (dogs), /ɪz/ (buses)'
+];
+
+function pickPronunciationSound() {
+  var recentTitles = getRecentTitles('pronunciation').join(' ').toLowerCase();
+  // Filter out sounds that appear in recent history
+  var pool = pronunciationSounds.filter(function(s) {
+    var key = s.split('(')[0].replace(/[\/\|]/g,'').trim().toLowerCase().substring(0,8);
+    return recentTitles.indexOf(key) < 0;
+  });
+  if (!pool.length) pool = pronunciationSounds; // fallback: all sounds
+  // Pick randomly from remaining pool
+  var idx = Math.floor(Math.random() * pool.length);
+  return pool[idx];
+}
+
+// Comprehensive topic pools for variety
+var TOPIC_POOLS = {
+  pronunciation: [
+    'the TH sound voiced as in this, the, that',
+    'the TH sound voiceless as in think, through, three',
+    'the short I vs long EE — ship vs sheep',
+    'the V vs B confusion — very vs berry',
+    'the W sound — Brazilians often say V instead',
+    'final consonant clusters — Brazilians add a vowel at the end',
+    'the schwa sound — the most common English vowel Brazilians ignore',
+    'the English R sound — completely different from Brazilian R',
+    'the AE vowel as in cat, bad, man — Brazilians say A instead',
+    'the short U as in cup, but, fun — often confused with A',
+    'the OW diphthong as in go, home, phone',
+    'word stress — Brazilians stress the wrong syllable',
+    'silent letters — know, knife, wrap, write, hour, honest',
+    'the ED ending — three sounds: T, D, ID',
+    'the S ending — three sounds: S, Z, IZ',
+    'the H sound — often dropped or wrongly added by Brazilians',
+    'the NG sound as in sing, ring, going',
+    'the OO sounds — food vs foot',
+    'the dark L at end of words — full, ball, call',
+    'sentence stress and rhythm — English is stress-timed, Portuguese is syllable-timed',
+    'the EA vowel variations — read, bread, great all spelled EA but different sounds',
+    'the TION ending as in nation, action, question',
+    'the CH vs SH sounds — chair vs share',
+    'the DG sound as in job, just, judge',
+    'the flap T in American English — butter, water, better sounds like D',
+    'linking words in connected speech — turn it off sounds like turniDoff',
+    'contractions in natural speech — gonna, wanna, kinda, hafta',
+    'the glottal stop in British English — bottle, button, butter'
+  ],
+  phrasal_verbs: [
+    'bring up','bring about','bring down','bring forward',
+    'call off','call out','call for','call in',
+    'carry on','carry out','carry over',
+    'come across','come up with','come through','come around',
+    'cut back','cut off','cut out','cut down on',
+    'deal with','draw up','drop off','drop out',
+    'fall apart','fall behind','fall through','figure out',
+    'get across','get along','get away with','get over','get rid of',
+    'give away','give in','give up','give back',
+    'go ahead','go through','go over','go without',
+    'hold on','hold back','hold off','keep up with',
+    'lay off','leave out','let down','look into',
+    'look up','make up','move on','pass on',
+    'pick up','point out','pull off','put off','put up with',
+    'run into','run out of','set up','show up',
+    'speak up','stand out','take over','take up',
+    'turn down','turn out','turn up','work out'
+  ],
+  idioms: [
+    'bite the bullet','break the ice','burn bridges',
+    'bite off more than you can chew','beat around the bush',
+    'back to square one','ball is in your court',
+    'cost an arm and a leg','cut corners',
+    'cross that bridge when you come to it',
+    'devil is in the details','easier said than done',
+    'every cloud has a silver lining','get out of hand',
+    'get the ball rolling','get cold feet',
+    'give someone the benefit of the doubt',
+    'go back to the drawing board','hit the nail on the head',
+    'hit the sack','in the heat of the moment',
+    'kill two birds with one stone','let the cat out of the bag',
+    'miss the boat','no pain no gain','once in a blue moon',
+    'on the fence','on thin ice','piece of cake',
+    'pull someone leg','read between the lines','ring a bell',
+    'speak of the devil','spill the beans',
+    'straight from the horse mouth','take it with a grain of salt',
+    'the last straw','throw in the towel','under the weather',
+    'up in the air','wrap your head around'
+  ],
+  grammar: [
+    'Present Perfect vs Simple Past','First Conditional',
+    'Second Conditional','Third Conditional','Mixed Conditionals',
+    'Passive Voice present','Passive Voice past',
+    'Reported Speech statements','Reported Speech questions',
+    'Modal Verbs for obligation — must, have to, should',
+    'Modal Verbs for possibility — might, may, could',
+    'Articles a, an, the — when to use each',
+    'Countable vs Uncountable nouns',
+    'Gerund vs Infinitive after verbs',
+    'Relative Clauses — who, which, that',
+    'Tag questions','Inversion for emphasis',
+    'Subjunctive mood','Wish plus past tense',
+    'Used to vs Would vs Be used to',
+    'Present Continuous for future plans',
+    'Future forms — will vs going to vs present continuous',
+    'Quantifiers — much, many, a lot of, few, little',
+    'Prepositions of time — at, in, on',
+    'Ellipsis and substitution in conversation'
+  ],
+  vocabulary: [
+    'Emotions and feelings','Technology and gadgets',
+    'Food and cooking','Travel and transportation',
+    'Health and body','Work and career',
+    'Environment and nature','Sports and fitness',
+    'Money and finance','Relationships and social life',
+    'Education and learning','Entertainment and media',
+    'Shopping and fashion','Home and furniture',
+    'Weather and seasons','Government and politics',
+    'Science and research','Art and creativity',
+    'Crime and justice','Time expressions'
+  ],
+  reading: [
+    'a tech startup story','a travel adventure',
+    'a scientific discovery','a cultural tradition',
+    'a historical event','a business decision',
+    'an environmental challenge','a personal achievement',
+    'a social media trend','a surprising statistic',
+    'a famous inventor','an unusual job',
+    'a food culture','a city transformation','a sports comeback'
+  ],
+  corporate: [
+    'run by','follow up','circle back','reach out','touch base',
+    'ramp up','scale up','roll out','sign off','back up',
+    'hand off','drill down','flag up','loop in','sync up',
+    'push back','take offline','wrap up','kick off','move the needle'
+  ]
+};
+
+function getRecentTitles(t) {
+  var recent = [];
+  savedLessons.filter(function(l){ return l.topic === t; }).slice(0,12).forEach(function(l){
+    var m = l.content.match(/<h3[^>]*>([^<]+)<\/h3>/i);
+    if (m) recent.push(m[1].trim().toLowerCase());
+  });
+  return recent;
+}
+
+function pickRandom(arr, recentTitles) {
+  // Score each item: 0 = recently seen, 1 = not seen
+  var pool = arr.filter(function(x){
+    return !recentTitles.some(function(r){
+      return r.indexOf(x.toLowerCase()) >= 0 || x.toLowerCase().indexOf(r) >= 0;
+    });
+  });
+  if (!pool.length) pool = arr;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function getPrompt() {
+  var t = topic, l = level;
+  var base = 'Output ONLY raw HTML — absolutely no markdown, no backticks, no ```html fence, no preamble. Start directly with the HTML tag.\n\n';
+  var recent = getRecentTitles(t);
+  var avoidLine = recent.length
+    ? '\nIMPORTANT: These topics were ALREADY taught recently — DO NOT repeat them: ' + recent.slice(0,8).join(' | ') + '. Choose something completely different.'
+    : '';
+  var pool = TOPIC_POOLS[t] || [];
+  var picked = pool.length ? pickRandom(pool, recent) : '';
+
+  var structs = {
+    phrasal_verbs: base+'Teach the phrasal verb "'+picked+'" to a '+l+' English learner.'+avoidLine+'\nHTML structure (use exactly these class names: sec, hl, ex, tip):\n<h3>[Verb] - [Portuguese meaning]<\/h3>\n<div class="sec">Definition<\/div><p>[English definition]<\/p>\n<div class="hl">[verb] + [structure]<\/div>\n<div class="sec">Examples<\/div>\n<div class="ex">[example 1]<\/div><div class="ex">[example 2]<\/div><div class="ex">[example 3]<\/div>\n<div class="sec">When to use<\/div><p>[context]<\/p>\n<div class="tip">Tip: [memory tip in Portuguese]<\/div>',
+
+    corporate: base+'Teach the corporate English expression "'+picked+'" used in professional contexts (meetings, emails, presentations) to a '+l+' learner.'+avoidLine+'\nHTML structure (use exactly these class names: sec, hl, ex, tip):\n<h3>[Expression] - [Portuguese meaning]<\/h3>\n<div class="sec">Business Meaning<\/div><p>[work-context definition in English]<\/p>\n<div class="hl">[expression] + [typical business structure]<\/div>\n<div class="sec">Real Work Situations<\/div>\n<div class="ex">[Meeting example]<\/div><div class="ex">[Email example]<\/div><div class="ex">[Presentation or negotiation example]<\/div>\n<div class="sec">When professionals use it<\/div><p>[scenarios: calls, Slack, reports, presentations]<\/p>\n<div class="tip">Work tip: [practical tip in Portuguese]<\/div>',
+
+    grammar: base+'Teach the English grammar topic "'+picked+'" to a '+l+' learner.'+avoidLine+'\nHTML structure (use exactly these class names: sec, hl, ex, tip):\n<h3>[Rule Name]<\/h3>\n<div class="sec">Explanation<\/div><p>[English explanation]<\/p>\n<div class="hl">[formula or pattern]<\/div>\n<div class="sec">Examples<\/div>\n<div class="ex">[example 1]<\/div><div class="ex">[example 2]<\/div><div class="ex">[example 3]<\/div>\n<div class="sec">Brazilian Mistake<\/div><p>[common mistake in Portuguese]<\/p>\n<div class="tip">Tip: [memory tip in Portuguese]<\/div>',
+
+    reading: base+'Write a short reading passage about '+picked+' for a '+l+' learner.'+avoidLine+'\nHTML structure (use exactly these class names: sec, ex, tip):\n<h3>[Interesting Title]<\/h3>\n<div class="sec">Read<\/div><p>[4-5 natural English sentences]<\/p>\n<div class="sec">Key Words<\/div>\n<div class="ex"><strong>[word1]<\/strong> - [Portuguese]<\/div><div class="ex"><strong>[word2]<\/strong> - [Portuguese]<\/div><div class="ex"><strong>[word3]<\/strong> - [Portuguese]<\/div>\n<div class="sec">Think About It<\/div><p>[1 comprehension question]<\/p>\n<div class="tip">Note: [language note in Portuguese]<\/div>',
+
+    vocabulary: base+'Teach 5 English words on the theme of "'+picked+'" to a '+l+' learner.'+avoidLine+'\nHTML structure (use exactly these class names: sec, ex, tip):\n<h3>Theme: '+picked+'<\/h3>\n<div class="sec">Words<\/div>\n<div class="ex"><strong>[word1]<\/strong> - [PT] - "[sentence]"<\/div>\n<div class="ex"><strong>[word2]<\/strong> - [PT] - "[sentence]"<\/div>\n<div class="ex"><strong>[word3]<\/strong> - [PT] - "[sentence]"<\/div>\n<div class="ex"><strong>[word4]<\/strong> - [PT] - "[sentence]"<\/div>\n<div class="ex"><strong>[word5]<\/strong> - [PT] - "[sentence]"<\/div>\n<div class="tip">Practice: [tip in Portuguese]<\/div>',
+
+    pronunciation: base+'Teach "'+picked+'" as a pronunciation challenge specifically for Brazilian Portuguese speakers at '+l+' level.'+avoidLine+'\nFocus ONLY on this specific sound/challenge. Do NOT teach TH sounds if the topic is something else.\nHTML structure (use exactly these class names: sec, hl, ex, tip).\nIMPORTANT: Wrap every practice word in <span class="speak-word">[word]<\/span> so the audio player works.\n<h3>[Descriptive title of the sound] — Challenge for Brazilians<\/h3>\n<div class="sec">The Sound<\/div><p>[explain in Portuguese why Brazilians struggle with THIS specific sound]<\/p>\n<div class="hl">[IPA symbol] — [mouth and tongue position described in Portuguese]<\/div>\n<div class="sec">Minimal Pairs<\/div>\n<div class="ex"><span class="speak-word">[word1]<\/span> × <span class="speak-word">[word2]<\/span><\/div>\n<div class="ex"><span class="speak-word">[word3]<\/span> × <span class="speak-word">[word4]<\/span><\/div>\n<div class="sec">Practice Words<\/div>\n<div class="ex"><span class="speak-word">[word]<\/span> — [example sentence using this sound]<\/div>\n<div class="ex"><span class="speak-word">[word]<\/span> — [example sentence using this sound]<\/div>\n<div class="ex"><span class="speak-word">[word]<\/span> — [example sentence using this sound]<\/div>\n<div class="tip">Tip: [practical exercise tip in Portuguese]<\/div>',
+
+    idioms: base+'Teach the English idiom "'+picked+'" to a '+l+' learner.'+avoidLine+'\nHTML structure (use exactly these class names: sec, ex, tip):\n<h3>"[idiom]" - [meaning in Portuguese]<\/h3>\n<div class="sec">What It Means<\/div><p>[English explanation]<\/p>\n<div class="sec">Examples<\/div>\n<div class="ex">[example 1]<\/div><div class="ex">[example 2]<\/div>\n<div class="sec">In Portuguese<\/div><p>[equivalent expression in Brazilian Portuguese]<\/p>\n<div class="tip">Note: [cultural note in Portuguese]<\/div>'
+  };
+  return structs[t] || structs['phrasal_verbs'];
+}
+async function generateLesson() {
+  if (!apiKey) { alert('Please set up your API Key first!'); showSection('settings'); return; }
+  var btn = document.getElementById('genBtn'), body = document.getElementById('lessonBody');
+  document.getElementById('audioPanel').style.display = 'none';
+  btn.disabled = true;
+  body.innerHTML = '<div class="loading-state"><div class="spinner"><\/div><span>Generating your lesson...<\/span><\/div>';
+  try {
+    var raw = await callGemini(getPrompt(), 1100);
+    var text = cleanOutput(raw);
+    lastLesson = text;
+    body.innerHTML = '<div class="fade-up">' + text + '<\/div>';
+    if (topic === 'pronunciation') buildAudioPanel(body);
+    todayLessons++;
+    try { localStorage.setItem('em_streak_count', todayLessons); } catch(e) {}
+    updateStreak();
+    var entry = { topic:topic, level:level, content:text, quiz:null,
+      date:new Date().toLocaleDateString('en-GB'),
+      time:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) };
+    savedLessons.unshift(entry);
+    if (savedLessons.length > 30) savedLessons.pop();
+    try { localStorage.setItem('em_lessons', JSON.stringify(savedLessons)); } catch(e) {}
+    renderHistList();
+  } catch(e) {
+    body.innerHTML = '<div style="color:var(--red);padding:1rem;"><strong>Error:<\/strong> ' + e.message + '<br><br><small>Check your API key in Settings.<\/small><\/div>';
+  }
+  btn.disabled = false;
+}
+
+function buildAudioPanel(container) {
+  var panel = document.getElementById('audioPanel'), wordRow = document.getElementById('audioWords');
+  wordRow.innerHTML = '';
+  var spans = container.querySelectorAll('.speak-word');
+  var words = [];
+  spans.forEach(function(sp) { var w = sp.textContent.trim(); if (w && words.indexOf(w) < 0) words.push(w); });
+  if (!words.length) {
+    var exDivs = container.querySelectorAll('.ex');
+    exDivs.forEach(function(d) {
+      var parts = d.textContent.trim().split(/\s+x\s+|\s+×\s+/);
+      parts.forEach(function(p) { var w = p.trim().split(/[\s—\-]/)[0]; if (w && w.length > 1 && words.indexOf(w) < 0) words.push(w); });
+    });
+  }
+  words.forEach(function(w) {
+    var btn = document.createElement('button');
+    btn.className = 'audio-word'; btn.textContent = '🔊 ' + w;
+    btn.onclick = (function(word, b) { return function() { speakWord(word, b); }; })(w, btn);
+    wordRow.appendChild(btn);
+  });
+  panel.style.display = words.length ? 'block' : 'none';
+}
+
+// Pre-load voices as soon as possible (Chrome loads them async)
+var cachedVoices = [];
+function loadVoices() {
+  var v = window.speechSynthesis.getVoices();
+  if (v.length) { cachedVoices = v; }
+}
+if (window.speechSynthesis) {
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function getBestEnglishVoice() {
+  // Prefer en-US, then any English voice
+  var voices = cachedVoices.length ? cachedVoices : window.speechSynthesis.getVoices();
+  var usVoice = null, enVoice = null;
+  for (var i = 0; i < voices.length; i++) {
+    if (voices[i].lang === 'en-US' && !usVoice) usVoice = voices[i];
+    if (voices[i].lang.indexOf('en') === 0 && !enVoice) enVoice = voices[i];
+  }
+  return usVoice || enVoice || null;
+}
+
+function speakWord(word, btn) {
+  if (!window.speechSynthesis) { alert('Your browser does not support speech synthesis.'); return; }
+  window.speechSynthesis.cancel();
+  document.querySelectorAll('.audio-word').forEach(function(b) { b.classList.remove('playing'); });
+  btn.classList.add('playing');
+
+  // Speak as full sentence so speed difference is clearly audible
+  var sentence = word + '. ' + word + '. The word is ' + word + '.';
+
+  function doSpeak() {
+    var utter = new SpeechSynthesisUtterance(sentence);
+    utter.lang = 'en-US';
+    var voice = getBestEnglishVoice();
+    if (voice) utter.voice = voice;
+    utter.rate = speechSpeed;
+    utter.pitch = 1;
+    utter.volume = 1;
+    utter.onend = function() { btn.classList.remove('playing'); };
+    utter.onerror = function() { btn.classList.remove('playing'); };
+    window.speechSynthesis.speak(utter);
+  }
+
+  if (!cachedVoices.length) {
+    window.speechSynthesis.onvoiceschanged = function() { loadVoices(); doSpeak(); };
+    setTimeout(doSpeak, 150);
+  } else {
+    doSpeak();
+  }
+}
+
+function setSpeed(btn, speed) {
+  speechSpeed = speed;
+  document.querySelectorAll('.speed-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  // Visual feedback
+  btn.style.transform = 'scale(1.1)';
+  setTimeout(function() { btn.style.transform = ''; }, 200);
+}
+
+// CACHE SYSTEM FOR QUIZZES
+var quizCache = {}; // In-memory cache
+function initCache() {
+  try {
+    var stored = localStorage.getItem('em_quiz_cache');
+    quizCache = stored ? JSON.parse(stored) : {};
+  } catch(e) { quizCache = {}; }
+}
+function getCacheKey(topic, level) {
+  return 'quiz_' + (topic||'default').toLowerCase().replace(/\s+/g,'_') + '_' + (level||'beginner').toLowerCase();
+}
+function getQuizFromCache(topic, level) {
+  var key = getCacheKey(topic, level);
+  return quizCache[key] || null;
+}
+function saveQuizToCache(topic, level, quizData) {
+  var key = getCacheKey(topic, level);
+  quizCache[key] = { data:quizData, timestamp:new Date().toISOString(), source:'cached' };
+  try { localStorage.setItem('em_quiz_cache', JSON.stringify(quizCache)); } catch(e) {}
+  updateCacheIndicator();
+}
+function clearQuizCache() {
+  if(confirm('Delete all cached quizzes? This cannot be undone.')) {
+    quizCache = {}; localStorage.removeItem('em_quiz_cache');
+    updateCacheIndicator();
+    alert('Cache cleared!');
+  }
+}
+function getCacheSize() {
+  var size = 0;
+  for(var key in quizCache) {
+    if(quizCache.hasOwnProperty(key)) {
+      size += JSON.stringify(quizCache[key]).length;
+    }
+  }
+  return (size/1024).toFixed(2) + ' KB';
+}
+function updateCacheIndicator() {
+  var count = Object.keys(quizCache).length;
+  var indicator = document.getElementById('cacheIndicator');
+  if(indicator) {
+    if(count > 0) {
+      indicator.innerHTML = '📦 Cache: '+count+' quiz(zes) • '+getCacheSize();
+      indicator.style.display = 'block';
+    } else {
+      indicator.style.display = 'none';
+    }
+  }
+}
+
+async function generateQuiz(forceNew) {
+  if (!apiKey) { alert('Please set up your API Key!'); showSection('settings'); return; }
+  if (!lastLesson) { alert('Generate a lesson first!'); showSection('lesson'); return; }
+  
+  var selectedTopic = document.querySelector('.nav-btn.active');
+  var topic = selectedTopic ? selectedTopic.textContent : 'Phrasal Verbs';
+  var level = document.querySelector('.chip.active');
+  var selectedLevel = level ? level.textContent : 'Beginner';
+  
+  var btn = document.getElementById('genQuizBtn'), body = document.getElementById('quizBody');
+  var submitBtn = document.getElementById('submitBtn'), resultCard = document.getElementById('resultCard');
+  btn.disabled = true; submitBtn.style.display = 'none'; resultCard.style.display = 'none';
+  document.getElementById('quizScore').textContent = '';
+  
+  // CHECK CACHE FIRST (unless forced new)
+  if(!forceNew) {
+    var cached = getQuizFromCache(topic, selectedLevel);
+    if(cached) {
+      body.innerHTML = '<div class="loading-state" style="color:var(--green);"><span>📦 Loading from cache...</span></div>';
+      setTimeout(function() {
+        quizData = cached.data;
+        userAnswers = new Array(quizData.questions.length).fill(null);
+        body.innerHTML = '<div style="background:#f0f9f4;border:1px solid #b8deca;border-radius:0.5rem;padding:0.75rem;margin-bottom:1rem;font-size:0.82rem;color:var(--green);">✅ This quiz was loaded from cache (no API call made). <button onclick="generateQuiz(true)" style="background:none;border:none;color:var(--green);cursor:pointer;text-decoration:underline;">Generate new quiz<\/button><\/div>';
+        quizData.questions.forEach(function(q, qi) {
+          var div = document.createElement('div'); div.className = 'q-item';
+          var opts = q.options.map(function(opt,oi) {
+            return '<button class="q-opt" id="opt-'+qi+'-'+oi+'" onclick="selectOpt('+qi+','+oi+')">'+String.fromCharCode(65+oi)+'. '+opt+'<\/button>';
+          }).join('');
+          div.innerHTML = '<div class="q-text">'+(qi+1)+'. '+q.q+'<\/div><div class="q-opts">'+opts+'<\/div>';
+          body.appendChild(div);
+        });
+        submitBtn.style.display = 'inline-flex';
+      }, 300);
+      btn.disabled = false;
+      return;
+    }
+  }
+  
+  body.innerHTML = '<div class="loading-state"><div class="spinner"><\/div><span>Creating diverse quiz (API call)...<\/span><\/div>';
+  var lessonText = lastLesson.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').substring(0,800);
+  var prompt = createAdvancedQuizPrompt(lessonText);
+  try {
+    var raw = await callGemini(prompt, 2000);
+    var clean = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+    quizData = JSON.parse(clean);
+    saveQuizToCache(topic, selectedLevel, quizData);
+    userAnswers = new Array(quizData.questions.length).fill(null);
+    body.innerHTML = '<div style="background:#fffcf0;border:1px solid var(--gold);border-radius:0.5rem;padding:0.75rem;margin-bottom:1rem;font-size:0.82rem;color:var(--gold);">🌟 Fresh quiz generated! This will be cached for next time.<\/div>';
+    quizData.questions.forEach(function(q, qi) {
+      var div = document.createElement('div'); div.className = 'q-item';
+      var opts = q.options.map(function(opt,oi) {
+        return '<button class="q-opt" id="opt-'+qi+'-'+oi+'" onclick="selectOpt('+qi+','+oi+')">'+String.fromCharCode(65+oi)+'. '+opt+'<\/button>';
+      }).join('');
+      div.innerHTML = '<div class="q-text">'+(qi+1)+'. '+q.q+'<\/div><div class="q-opts">'+opts+'<\/div>';
+      body.appendChild(div);
+    });
+    submitBtn.style.display = 'inline-flex';
+  } catch(e) { body.innerHTML = '<div style="color:var(--red);">Error: '+e.message+'<\/div>'; }
+  btn.disabled = false;
+}
+
+function createAdvancedQuizPrompt(lessonText) {
+  var questionTypes = [
+    'Vocabulary/Meaning - Ask what a word from the lesson means',
+    'Grammar/Structure - Test grammatical understanding (tense, agreement, syntax)',
+    'Comprehension - Ask about the main idea or specific details from the lesson',
+    'Application - Ask how to use the concept in a different context',
+    'Recall - Ask to identify or remember specific information from the lesson'
+  ];
+  
+  var prompt = 'You are an expert English teacher. Create 4 COMPLETELY DIFFERENT quiz questions based on this lesson.\\n\\n';
+  prompt += 'LESSON CONTENT:\\n' + lessonText + '\\n\\n';
+  prompt += '=== CRITICAL REQUIREMENTS ===\\n';
+  prompt += '1. DIVERSITY: Each question must test a DIFFERENT skill\\n';
+  prompt += '   - Do NOT create similar questions about the same concept\\n';
+  prompt += '   - Vary the question types: vocabulary, grammar, comprehension, application, recall\\n';
+  prompt += '2. QUALITY: Each question should:\\n';
+  prompt += '   - Test understanding, not just memorization\\n';
+  prompt += '   - Have 4 plausible but clearly different options\\n';
+  prompt += '   - Include a detailed explanation of the correct answer\\n';
+  prompt += '3. LEVEL: Match the complexity of the original lesson\\n\\n';
+  
+  prompt += '=== QUESTION DISTRIBUTION ===\\n';
+  for(var i=0; i<questionTypes.length; i++) {
+    prompt += 'Question ' + (i+1) + ': ' + (i < 4 ? questionTypes[i] : questionTypes[4]) + '\\n';
+  }
+  
+  prompt += '\\n=== JSON FORMAT (RETURN ONLY THIS, NO MARKDOWN) ===\\n';
+  prompt += '{"questions":[';
+  for(var j=0; j<4; j++) {
+    if(j>0) prompt += ',';
+    prompt += '{"q":"Question text?","options":["Option A","Option B","Option C","Option D"],"correct":0,"explanation":"Detailed explanation with context"}';
+  }
+  prompt += ']}\\n\\n';
+  
+  prompt += '=== VALIDATION RULES ===\\n';
+  prompt += '✓ 4 questions based on the lesson content\\n';
+  prompt += '✓ Each question tests a DIFFERENT aspect (no repeated patterns)\\n';
+  prompt += '✓ All options are in English and plausible\\n';
+  prompt += '✓ "correct" field is 0-3 matching the position in options array\\n';
+  prompt += '✓ Explanations are detailed and educational\\n';
+  prompt += '✓ Return ONLY valid JSON with no extra text or markdown\\n';
+  
+  return prompt;
+}
+
+function selectOpt(qi, oi) {
+  if (!quizData) return;
+  for (var i = 0; i < quizData.questions[qi].options.length; i++) {
+    var el = document.getElementById('opt-'+qi+'-'+i); if (el) el.className = 'q-opt';
+  }
+  var chosen = document.getElementById('opt-'+qi+'-'+oi); if (chosen) chosen.className = 'q-opt selected';
+  userAnswers[qi] = oi;
+  var allDone = true;
+  for (var j = 0; j < userAnswers.length; j++) { if (userAnswers[j] === null) { allDone = false; break; } }
+  if (allDone) document.getElementById('submitBtn').style.boxShadow = '0 0 0 3px rgba(201,168,76,0.35)';
+}
+
+function submitQuiz() {
+  if (!quizData) return;
+  for (var j = 0; j < userAnswers.length; j++) { if (userAnswers[j] === null) { alert('Please answer question '+(j+1)+'!'); return; } }
+  var score = 0, resultHtml = '';
+  quizData.questions.forEach(function(q,qi) {
+    var correct = userAnswers[qi] === q.correct; if (correct) score++;
+    for (var i = 0; i < q.options.length; i++) {
+      var el = document.getElementById('opt-'+qi+'-'+i); if (!el) continue;
+      el.disabled = true; el.className = 'q-opt';
+      if (i === q.correct) el.className = 'q-opt correct';
+      else if (i === userAnswers[qi]) el.className = 'q-opt wrong';
+    }
+    resultHtml += '<div class="result-item '+(correct?'ok':'fail')+'">';
+    resultHtml += '<div class="result-q">'+(correct?'&#9989;':'&#10060;')+' Q'+(qi+1)+': '+q.q+'<\/div>';
+    resultHtml += '<div style="font-size:0.82rem;color:var(--muted);">Your answer: <strong>'+q.options[userAnswers[qi]]+'<\/strong>';
+    if (!correct) resultHtml += ' &nbsp;&middot;&nbsp; Correct: <strong style="color:var(--green)">'+q.options[q.correct]+'<\/strong>';
+    resultHtml += '<\/div><div class="result-exp">&#128161; '+q.explanation+'<\/div><\/div>';
+  });
+  var n = quizData.questions.length;
+  var emoji = score===n ? '&#127942; Perfect score!' : score>=n/2 ? '&#128077; Good job!' : '&#128218; Keep going!';
+  document.getElementById('resultBody').innerHTML =
+    '<div style="margin-bottom:1.25rem;"><div style="font-family:\'Playfair Display\',serif;font-size:1.2rem;">'+emoji+'<\/div>'+
+    '<div style="color:var(--muted);font-size:0.83rem;margin-top:0.25rem;">You got <strong>'+score+' out of '+n+'<\/strong> correct.<\/div><\/div>'+resultHtml;
+  document.getElementById('quizScore').textContent = score+'/'+n+' correct';
+  document.getElementById('resultCard').style.display = 'block';
+  document.getElementById('submitBtn').style.display = 'none';
+  document.getElementById('resultCard').scrollIntoView({behavior:'smooth',block:'start'});
+  if (savedLessons.length > 0 && !savedLessons[0].quiz) {
+    savedLessons[0].quiz = { score:score, total:n,
+      questions:quizData.questions.map(function(q,qi){ return {q:q.q,options:q.options,correct:q.correct,userAnswer:userAnswers[qi],explanation:q.explanation}; })
+    };
+    try { localStorage.setItem('em_lessons', JSON.stringify(savedLessons)); } catch(e) {}
+    renderHistList();
+  }
+}
+
+function renderHistList() {
+  var el = document.getElementById('histList');
+  if (!savedLessons.length) { el.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;font-style:italic;">No lessons yet.<\/div>'; return; }
+  var html = '';
+  savedLessons.forEach(function(item,i) {
+    var qb = '';
+    if (item.quiz) {
+      var c = item.quiz.score===item.quiz.total?'var(--green)':item.quiz.score>=item.quiz.total/2?'var(--gold)':'var(--red)';
+      qb = '<span style="font-family:\'DM Mono\',monospace;font-size:0.62rem;color:'+c+';border:1px solid '+c+';border-radius:2rem;padding:0.15rem 0.5rem;">Quiz '+item.quiz.score+'/'+item.quiz.total+'<\/span>';
+    }
+    html += '<div class="h-item" onclick="showHistItem('+i+')">';
+    html += '<div><div class="h-topic">'+item.topic.replace('_',' ')+'<\/div>';
+    html += '<div class="h-sub"><span>'+item.level+'<\/span>'+qb+'<\/div><\/div>';
+    html += '<div class="h-time">'+item.date+' '+item.time+'<\/div><\/div>';
+  });
+  el.innerHTML = html;
+}
+
+function showHistItem(i) {
+  var item = savedLessons[i]; lastLesson = item.content;
+  var detail = document.getElementById('histDetail');
+  var html = '<div class="card" style="margin-top:1rem;">';
+  html += '<div class="card-head"><span class="card-label">'+item.topic.replace('_',' ').toUpperCase()+' &mdash; '+item.level+'<\/span>';
+  html += '<span class="h-time">'+item.date+' '+item.time+'<\/span><\/div>';
+  html += '<div class="card-body fade-up">'+item.content+'<\/div><\/div>';
+  if (item.quiz) {
+    html += '<div class="card" style="margin-top:1rem;"><div class="card-head"><span class="card-label">&#128202; Quiz &mdash; '+item.quiz.score+'/'+item.quiz.total+' correct<\/span><\/div><div class="card-body">';
+    item.quiz.questions.forEach(function(q) {
+      var ok = q.userAnswer===q.correct;
+      html += '<div class="result-item '+(ok?'ok':'fail')+'">';
+      html += '<div class="result-q">'+(ok?'&#9989;':'&#10060;')+' '+q.q+'<\/div>';
+      html += '<div style="font-size:0.82rem;color:var(--muted);">Your answer: <strong>'+q.options[q.userAnswer]+'<\/strong>';
+      if (!ok) html += ' &nbsp;&middot;&nbsp; Correct: <strong style="color:var(--green)">'+q.options[q.correct]+'<\/strong>';
+      html += '<\/div><div class="result-exp">&#128161; '+q.explanation+'<\/div><\/div>';
+    });
+    html += '<\/div><\/div>';
+  } else { html += '<div style="color:var(--muted);font-size:0.82rem;font-style:italic;margin-top:0.5rem;">No quiz for this lesson.<\/div>'; }
+  detail.innerHTML = html;
+  detail.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// BOTTOM NAVIGATION HANDLER
+function initBottomNav() {
+  var navItems = document.querySelectorAll('.nav-item-mobile');
+  navItems.forEach(function(item) {
+    item.addEventListener('click', function() {
+      var section = this.getAttribute('data-section');
+      showSection(section);
+      navItems.forEach(function(i) { i.classList.remove('active'); });
+      item.classList.add('active');
+    });
+  });
+  // Set initial active
+  document.querySelector('[data-section="lesson"]').classList.add('active');
+}
+
+// Add to window.onload
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(initBottomNav, 100);
+});
+</script>
+
+<!-- BOTTOM NAVIGATION (Mobile) -->
+<nav class="bottom-nav">
+  <div class="nav-item-mobile" data-section="lesson">
+    <span>📚</span>
+    <span>Lessons</span>
+  </div>
+  <div class="nav-item-mobile" data-section="quiz">
+    <span>✏️</span>
+    <span>Quiz</span>
+  </div>
+  <div class="nav-item-mobile" data-section="hist">
+    <span>📋</span>
+    <span>History</span>
+  </div>
+  <div class="nav-item-mobile" data-section="settings">
+    <span>⚙️</span>
+    <span>Settings</span>
+  </div>
+</nav>
+
+</body>
+</html>
