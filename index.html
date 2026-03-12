@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EnglishMind — Seu Tutor Pessoal (Grátis)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f0e8;
+    --cream: #ede8d8;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --red: #c0392b;
+    --green: #2e7d5e;
+    --muted: #7a7268;
+    --border: #d4cfc0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: baseline;
+    gap: 0.15rem;
+  }
+
+  .logo span { color: var(--gold); font-style: italic; }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.3rem 0.7rem;
+    border-radius: 2rem;
+  }
+
+  /* MAIN LAYOUT */
+  .container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 73px);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: rgba(245,240,232,0.6);
+  }
+
+  .sidebar-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 1.2rem 0.8rem 0.5rem;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: 0.5rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--ink);
+    text-align: left;
+    transition: all 0.15s;
+    width: 100%;
+  }
+
+  .nav-btn:hover { background: var(--cream); }
+
+  .nav-btn.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .nav-btn .icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .streak-box {
+    margin-top: auto;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 1rem;
+  }
+
+  .streak-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .streak-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+
+  /* MAIN CONTENT */
+  .main {
+    padding: 2.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 860px;
+  }
+
+  /* TOPIC SELECTOR */
+  .topics {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .topic-chip {
+    padding: 0.45rem 1rem;
+    border-radius: 2rem;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--ink);
+  }
+
+  .topic-chip:hover { border-color: var(--gold); color: var(--gold); }
+
+  .topic-chip.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: white;
+    font-weight: 500;
+  }
+
+  /* LESSON CARD */
+  .lesson-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .lesson-header {
+    padding: 1.25rem 1.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .lesson-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .lesson-body {
+    padding: 1.75rem;
+    min-height: 200px;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--ink);
+  }
+
+  .lesson-body.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .lesson-body.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.75rem;
+    color: var(--muted);
+    min-height: 280px;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    opacity: 0.4;
+  }
+
+  .empty-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+  }
+
+  /* Formatted lesson content */
+  .lesson-body h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: var(--ink);
+  }
+
+  .lesson-body .highlight {
+    background: #fff8e7;
+    border-left: 3px solid var(--gold);
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    border-radius: 0 0.4rem 0.4rem 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88rem;
+  }
+
+  .lesson-body .example {
+    padding: 0.5rem 0;
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .lesson-body .example::before {
+    content: '→';
+    color: var(--gold);
+    font-weight: bold;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+  }
+
+  .lesson-body .section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 1.25rem 0 0.6rem;
+  }
+
+  .lesson-body .tip-box {
+    background: #f0f9f4;
+    border: 1px solid #b8deca;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.88rem;
+    color: var(--green);
+    margin-top: 1rem;
+  }
+
+  /* SPINNER */
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 2.5px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* GENERATE BUTTON */
+  .generate-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.75rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 0.6rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-self: flex-start;
+  }
+
+  .generate-btn:hover {
+    background: var(--gold);
+    color: var(--ink);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(201,168,76,0.3);
+  }
+
+  .generate-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* HISTORY */
+  .history-section { margin-top: 1rem; }
+
+  .history-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .history-item {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 0.8rem 1rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .history-item:hover { border-color: var(--gold); }
+
+  .history-item .htopic {
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  .history-item .htime {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  /* QUIZ SECTION */
+  .quiz-area {
+    display: none;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .quiz-area.visible { display: flex; }
+
+  .quiz-question {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .quiz-opt {
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 0.5rem;
+    background: white;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    text-align: left;
+    transition: all 0.15s;
+  }
+
+  .quiz-opt:hover { border-color: var(--gold); background: #fffcf0; }
+  .quiz-opt.correct { border-color: var(--green); background: #f0f9f4; color: var(--green); }
+  .quiz-opt.wrong { border-color: var(--red); background: #fff5f5; color: var(--red); }
+
+  /* API KEY INPUT */
+  .api-section {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .api-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .api-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .api-input {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    background: white;
+    color: var(--ink);
+    outline: none;
+  }
+
+  .api-input:focus { border-color: var(--gold); }
+
+  .api-save {
+    padding: 0.65rem 1.2rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 0.5rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .api-save:hover { background: var(--gold); color: var(--ink); }
+
+  .api-note {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .api-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 2rem;
+    background: #f0f9f4;
+    color: var(--green);
+    border: 1px solid #b8deca;
+  }
+
+  .api-status.no-key { background: #fff5f5; color: var(--red); border-color: #f5c0bc; }
+
+  /* LEVEL INDICATOR */
+  .level-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .level-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .level-chip {
+    padding: 0.3rem 0.75rem;
+    border-radius: 2rem;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink);
+  }
+
+  .level-chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* FADE IN */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in { animation: fadeIn 0.4s ease forwards; }
+
+  /* DECORATIVE LINE */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 0.5rem 0;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 720px) {
+    .container { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { padding: 1.5rem; }
+    header { padding: 1rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">English<span>Mind</span></div>
+  <div class="badge">AI Tutor ✦ Grátis</div>
+</header>
+
+<div class="container">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-label">Módulos</div>
+    <button class="nav-btn active" onclick="setSection('lesson')">
+      <span class="icon">📖</span> Lições
+    </button>
+    <button class="nav-btn" onclick="setSection('quiz')">
+      <span class="icon">✏️</span> Quiz
+    </button>
+    <button class="nav-btn" onclick="setSection('history')">
+      <span class="icon">📋</span> Histórico
+    </button>
+
+    <div class="divider" style="margin: 1rem 0;"></div>
+    <div class="sidebar-label">Configurações</div>
+    <button class="nav-btn" onclick="setSection('settings')">
+      <span class="icon">🔑</span> API Key
+    </button>
+
+    <div class="streak-box">
+      <div class="streak-num" id="streakNum">0</div>
+      <div class="streak-label">lições hoje 🔥</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- SETTINGS SECTION -->
+    <div id="section-settings" style="display:none;">
+      <div class="api-section">
+        <div class="api-label">Chave da API — Google Gemini (Gratuito 🎉)</div>
+        <div id="apiStatusBadge" class="api-status no-key">⚠ Sem chave configurada</div>
+        <div class="api-row">
+          <input type="password" class="api-input" id="apiKeyInput" placeholder="AIza..." />
+          <button class="api-save" onclick="saveApiKey()">Salvar</button>
+        </div>
+        <div class="api-note">
+          🆓 <strong>100% gratuito, sem cartão de crédito!</strong><br><br>
+          Como pegar sua chave:<br>
+          1. Acesse <strong>aistudio.google.com</strong> com sua conta Google<br>
+          2. Clique em <strong>"Get API Key"</strong> → <strong>"Create API Key"</strong><br>
+          3. Copie a chave (começa com <code>AIza...</code>) e cole aqui<br><br>
+          🔒 Sua chave fica salva <strong>apenas no seu navegador</strong> e nunca passa por nenhum servidor nosso.
+        </div>
+      </div>
+    </div>
+
+    <!-- LESSON SECTION -->
+    <div id="section-lesson">
+      <!-- Level selector -->
+      <div class="level-row">
+        <span class="level-label">Nível:</span>
+        <button class="level-chip active" onclick="setLevel(this, 'Beginner (A1-A2)')">A1–A2</button>
+        <button class="level-chip" onclick="setLevel(this, 'Intermediate (B1-B2)')">B1–B2</button>
+        <button class="level-chip" onclick="setLevel(this, 'Advanced (C1-C2)')">C1–C2</button>
+      </div>
+
+      <!-- Topic chips -->
+      <div class="topics">
+        <button class="topic-chip active" onclick="setTopic(this, 'phrasal_verbs')">Phrasal Verbs</button>
+        <button class="topic-chip" onclick="setTopic(this, 'grammar')">Gramática</button>
+        <button class="topic-chip" onclick="setTopic(this, 'reading')">Leitura</button>
+        <button class="topic-chip" onclick="setTopic(this, 'vocabulary')">Vocabulário</button>
+        <button class="topic-chip" onclick="setTopic(this, 'pronunciation')">Pronúncia</button>
+        <button class="topic-chip" onclick="setTopic(this, 'idioms')">Idioms</button>
+      </div>
+
+      <!-- Lesson card -->
+      <div class="lesson-card">
+        <div class="lesson-header">
+          <span class="lesson-type" id="lessonTypeLabel">PHRASAL VERBS</span>
+          <span id="apiStatusSmall" class="api-status no-key" style="font-size:0.65rem; padding:0.2rem 0.6rem;">Sem API Key</span>
+        </div>
+        <div class="lesson-body empty" id="lessonBody">
+          <div class="empty-icon">🎓</div>
+          <div class="empty-text">Escolha um tópico e gere sua lição</div>
+          <div style="font-size:0.8rem; color:var(--muted);">Configure sua API key para começar</div>
+        </div>
+      </div>
+
+      <button class="generate-btn" id="generateBtn" onclick="generateLesson()">
+        ✦ Gerar nova lição
+      </button>
+    </div>
+
+    <!-- QUIZ SECTION -->
+    <div id="section-quiz" style="display:none;">
+      <div class="lesson-card">
+        <div class="lesson-header">
+          <span class="lesson-type">QUIZ — TEST YOUR KNOWLEDGE</span>
+          <span id="quizScore" style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);display:none;"></span>
+        </div>
+        <div class="lesson-body" id="quizBody">
+          <div style="color:var(--muted); font-style:italic; text-align:center; padding: 2rem 0;">
+            Generate a lesson first, then come here to test yourself.
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+        <button class="generate-btn" id="quizBtn" onclick="generateQuiz()">✦ Generate Quiz</button>
+        <button class="generate-btn" id="submitBtn" onclick="submitQuiz()" style="display:none;background:var(--green);color:white;">✓ Submit &amp; See Results</button>
+      </div>
+      <div id="quizFeedback" style="display:none;" class="lesson-card">
+        <div class="lesson-header"><span class="lesson-type">📊 RESULTS &amp; EXPLANATIONS</span></div>
+        <div class="lesson-body" id="quizFeedbackBody"></div>
+      </div>
+    </div>
+
+    <!-- HISTORY SECTION -->
+    <div id="section-history" style="display:none;">
+      <div class="history-title">Lições e Quizzes anteriores</div>
+      <div class="history-list" id="historyList">
+        <div style="color:var(--muted); font-size:0.85rem; font-style:italic;">Nenhuma lição gerada ainda.</div>
+      </div>
+      <div id="historyDetail" style="display:none;margin-top:1.5rem;"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentTopic = 'phrasal_verbs';
+let currentLevel = 'Beginner (A1-A2)';
+let currentSection = 'lesson';
+let lastLesson = '';
+let history = JSON.parse(localStorage.getItem('em_history') || '[]');
+let streak = parseInt(localStorage.getItem('em_streak') || '0');
+let streakDate = localStorage.getItem('em_streak_date') || '';
+let apiKey = localStorage.getItem('em_apikey') || '';
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function init() {
+  updateApiStatus();
+  updateStreak();
+  renderHistory();
+
+  const today = new Date().toDateString();
+  if (streakDate !== today) {
+    // reset streak counter display for new day (keep accumulated)
+    localStorage.setItem('em_streak', '0');
+    streak = 0;
+    streakDate = today;
+    localStorage.setItem('em_streak_date', today);
+  }
+  document.getElementById('streakNum').textContent = streak;
+}
+
+// ─── SECTION NAV ─────────────────────────────────────────────────────────────
+function setSection(name) {
+  currentSection = name;
+  ['lesson','quiz','history','settings'].forEach(s => {
+    const el = document.getElementById('section-' + s);
+    if (el) el.style.display = s === name ? (s === 'lesson' ? 'flex' : 'block') : 'none';
+  });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const idx = ['lesson','quiz','history','settings'].indexOf(name);
+  document.querySelectorAll('.nav-btn')[idx]?.classList.add('active');
+
+  if (name === 'lesson') document.getElementById('section-lesson').style.display = 'contents';
+}
+
+// ─── TOPIC & LEVEL ───────────────────────────────────────────────────────────
+function setTopic(btn, topic) {
+  currentTopic = topic;
+  document.querySelectorAll('.topic-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const labels = {
+    phrasal_verbs: 'PHRASAL VERBS',
+    grammar: 'GRAMÁTICA',
+    reading: 'LEITURA & COMPREENSÃO',
+    vocabulary: 'VOCABULÁRIO',
+    pronunciation: 'PRONÚNCIA',
+    idioms: 'IDIOMS & EXPRESSÕES'
+  };
+  document.getElementById('lessonTypeLabel').textContent = labels[topic] || topic.toUpperCase();
+}
+
+function setLevel(btn, level) {
+  currentLevel = level;
+  document.querySelectorAll('.level-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ─── API KEY ─────────────────────────────────────────────────────────────────
+function saveApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val.startsWith('AIza') || val.length < 20) {
+    alert('Chave inválida. Deve começar com AIza...\nAcesse aistudio.google.com para gerar sua chave gratuita.');
+    return;
+  }
+  apiKey = val;
+  localStorage.setItem('em_apikey', apiKey);
+  updateApiStatus();
+  setSection('lesson');
+}
+
+function updateApiStatus() {
+  const badge = document.getElementById('apiStatusBadge');
+  const small = document.getElementById('apiStatusSmall');
+  if (apiKey) {
+    badge.className = 'api-status';
+    badge.textContent = '✓ Chave configurada';
+    small.className = 'api-status';
+    small.textContent = '✓ Pronto';
+  } else {
+    badge.className = 'api-status no-key';
+    badge.textContent = '⚠ Sem chave configurada';
+    small.className = 'api-status no-key';
+    small.textContent = 'Sem API Key';
+  }
+  if (apiKey) document.getElementById('apiKeyInput').value = apiKey;
+}
+
+// ─── GENERATE LESSON ─────────────────────────────────────────────────────────
+const PROMPTS = {
+  phrasal_verbs: `Teach one phrasal verb in English for a ${currentLevel} learner. Structure your response in this EXACT HTML format:
+<h3>[Phrasal Verb] — [Portuguese meaning]</h3>
+<div class="section-title">Definition</div>
+<p>[Clear definition in English, 1-2 sentences]</p>
+<div class="highlight">[phrasal verb] + [typical structure]</div>
+<div class="section-title">Examples</div>
+<div class="example">[Natural example sentence 1]</div>
+<div class="example">[Natural example sentence 2]</div>
+<div class="example">[Natural example sentence 3]</div>
+<div class="section-title">Common Contexts</div>
+<p>[When and where to use it, 2-3 sentences]</p>
+<div class="tip-box">💡 Tip: [A memorable tip or mnemonic in Portuguese]</div>`,
+
+  grammar: `Teach one English grammar rule for a ${currentLevel} learner. Use this EXACT HTML format:
+<h3>[Grammar Rule Name]</h3>
+<div class="section-title">What it is</div>
+<p>[Explanation in English, 2-3 sentences]</p>
+<div class="highlight">[Formula or pattern]</div>
+<div class="section-title">Examples</div>
+<div class="example">[Example sentence 1]</div>
+<div class="example">[Example sentence 2]</div>
+<div class="example">[Example sentence 3]</div>
+<div class="section-title">Common Mistakes</div>
+<p>[What Brazilians often get wrong, in Portuguese]</p>
+<div class="tip-box">✅ [Quick memory tip in Portuguese]</div>`,
+
+  reading: `Create a short reading passage for a ${currentLevel} learner. Use this EXACT HTML format:
+<h3>[Interesting Title]</h3>
+<div class="section-title">Read this passage</div>
+<p>[Write 4-6 sentences in natural English appropriate for the level. Make it interesting and real-world relevant.]</p>
+<div class="section-title">Key Vocabulary</div>
+<div class="example"><strong>[word1]</strong> — [Portuguese translation]</div>
+<div class="example"><strong>[word2]</strong> — [Portuguese translation]</div>
+<div class="example"><strong>[word3]</strong> — [Portuguese translation]</div>
+<div class="section-title">Comprehension</div>
+<p>[1 question in English about the passage for the reader to think about]</p>
+<div class="tip-box">🔍 [One useful language note about something in the text, in Portuguese]</div>`,
+
+  vocabulary: `Teach 5 useful English words for a ${currentLevel} learner around a single theme. Use this EXACT HTML format:
+<h3>Theme: [Theme Name]</h3>
+<div class="section-title">Words</div>
+<div class="example"><strong>[word1]</strong> [/pronunciation/] — [Portuguese meaning] — "[example sentence]"</div>
+<div class="example"><strong>[word2]</strong> [/pronunciation/] — [Portuguese meaning] — "[example sentence]"</div>
+<div class="example"><strong>[word3]</strong> [/pronunciation/] — [Portuguese meaning] — "[example sentence]"</div>
+<div class="example"><strong>[word4]</strong> [/pronunciation/] — [Portuguese meaning] — "[example sentence]"</div>
+<div class="example"><strong>[word5]</strong> [/pronunciation/] — [Portuguese meaning] — "[example sentence]"</div>
+<div class="tip-box">📝 [How to practice these words, in Portuguese]</div>`,
+
+  pronunciation: `Teach one English pronunciation challenge for Brazilian Portuguese speakers at ${currentLevel}. Use this EXACT HTML format:
+<h3>[Sound or Pattern] — A Challenge for Brazilians</h3>
+<div class="section-title">The Sound</div>
+<p>[Explain the sound and why it's hard for Brazilians, in Portuguese]</p>
+<div class="highlight">[IPA symbol] — [How to describe mouth position in Portuguese]</div>
+<div class="section-title">Minimal Pairs Practice</div>
+<div class="example">[word1] /sound1/ × [word2] /sound2/</div>
+<div class="example">[word3] /sound1/ × [word4] /sound2/</div>
+<div class="section-title">Words to Practice</div>
+<div class="example">[Word with this sound] — [Natural sentence]</div>
+<div class="example">[Word with this sound] — [Natural sentence]</div>
+<div class="tip-box">🗣️ [Practical tip for practicing this sound, in Portuguese]</div>`,
+
+  idioms: `Teach one English idiom for a ${currentLevel} learner. Use this EXACT HTML format:
+<h3>"[idiom]" — [Literal + real meaning in Portuguese]</h3>
+<div class="section-title">What it actually means</div>
+<p>[Clear explanation in English, 2 sentences]</p>
+<div class="section-title">Examples in context</div>
+<div class="example">[Realistic dialogue or situation 1]</div>
+<div class="example">[Realistic dialogue or situation 2]</div>
+<div class="section-title">Similar in Portuguese</div>
+<p>[Equivalent or closest expression in Brazilian Portuguese]</p>
+<div class="tip-box">🌎 [Cultural note or when to use it, in Portuguese]</div>`
+};
+
+async function generateLesson() {
+  if (!apiKey) {
+    alert('Configure sua API Key primeiro! Clique em "API Key" no menu.');
+    setSection('settings');
+    return;
+  }
+
+  const btn = document.getElementById('generateBtn');
+  const body = document.getElementById('lessonBody');
+
+  btn.disabled = true;
+  body.className = 'lesson-body loading';
+  body.innerHTML = '<div class="spinner"></div><span>Gerando sua lição...</span>';
+
+  const prompt = PROMPTS[currentTopic]?.replace(/\$\{currentLevel\}/g, currentLevel)
+    || `Teach an English lesson about ${currentTopic} for a ${currentLevel} learner.`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 1000 }
+        })
+      }
+    );
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || 'Erro na API do Gemini');
+    }
+
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    lastLesson = text;
+
+    body.className = 'lesson-body fade-in';
+    body.innerHTML = text;
+
+    // Save to history
+    const entry = {
+      topic: currentTopic,
+      level: currentLevel,
+      time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      date: new Date().toLocaleDateString('pt-BR'),
+      content: text
+    };
+    history.unshift(entry);
+    if (history.length > 20) history.pop();
+    localStorage.setItem('em_history', JSON.stringify(history));
+
+    // Update streak
+    streak++;
+    localStorage.setItem('em_streak', streak.toString());
+    document.getElementById('streakNum').textContent = streak;
+
+    renderHistory();
+
+  } catch (e) {
+    body.className = 'lesson-body';
+    body.innerHTML = `<div style="color:var(--red); padding:1rem;">
+      <strong>Erro:</strong> ${e.message}<br><br>
+      <small>Verifique sua API key e tente novamente.</small>
+    </div>`;
+  }
+
+  btn.disabled = false;
+}
+
+// ─── QUIZ ─────────────────────────────────────────────────────────────────────
+let currentQuizData = null;
+let userAnswers = [];
+
+async function generateQuiz() {
+  if (!apiKey) { alert('Configure sua API Key!'); setSection('settings'); return; }
+  if (!lastLesson) { alert('Generate a lesson first!'); setSection('lesson'); return; }
+
+  const btn = document.getElementById('quizBtn');
+  const body = document.getElementById('quizBody');
+  const submitBtn = document.getElementById('submitBtn');
+  const feedback = document.getElementById('quizFeedback');
+  const scoreEl = document.getElementById('quizScore');
+
+  btn.disabled = true;
+  submitBtn.style.display = 'none';
+  feedback.style.display = 'none';
+  scoreEl.style.display = 'none';
+  body.className = 'lesson-body loading';
+  body.innerHTML = '<div class="spinner"></div><span>Creating quiz...</span>';
+
+  const prompt = `Based on this English lesson, create a quiz with 4 multiple-choice questions IN ENGLISH (questions and options in English). Each question must test understanding of the lesson content.
+
+Lesson content: ${lastLesson.replace(/<[^>]*>/g,'').substring(0, 900)}
+
+Respond ONLY with valid JSON (no markdown, no backticks, no extra text):
+{"questions":[{"q":"Question in English?","options":["Option A","Option B","Option C","Option D"],"correct":0,"explanation":"Why this answer is correct, in English. Also briefly explain why the others are wrong."}]}
+
+Make sure "correct" is the INDEX (0-3) of the correct option in the options array.`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 1200, temperature: 0.7 }
+        })
+      }
+    );
+
+    const data = await res.json();
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    currentQuizData = parsed;
+    userAnswers = new Array(parsed.questions.length).fill(null);
+
+    body.className = 'lesson-body fade-in';
+    body.innerHTML = '';
+    parsed.questions.forEach((q, qi) => {
+      const qDiv = document.createElement('div');
+      qDiv.style.marginBottom = '1.75rem';
+      qDiv.setAttribute('data-qi', qi);
+      qDiv.innerHTML = `<div class="quiz-question">${qi+1}. ${q.q}</div>
+        <div class="quiz-options">${q.options.map((opt, oi) =>
+          `<button class="quiz-opt" data-qi="${qi}" data-oi="${oi}" onclick="selectAnswer(this,${qi},${oi})">${String.fromCharCode(65+oi)}. ${opt}</button>`
+        ).join('')}</div>`;
+      body.appendChild(qDiv);
+    });
+
+    submitBtn.style.display = 'flex';
+
+  } catch(e) {
+    body.className = 'lesson-body';
+    body.innerHTML = `<div style="color:var(--red);">Error generating quiz: ${e.message}</div>`;
+  }
+
+  btn.disabled = false;
+}
+
+function selectAnswer(btn, qi, oi) {
+  // Deselect all in this question
+  document.querySelectorAll(`[data-qi="${qi}"].quiz-opt`).forEach(b => {
+    b.style.background = '';
+    b.style.borderColor = '';
+    b.style.fontWeight = '';
+  });
+  // Select this one visually
+  btn.style.background = '#fff8e7';
+  btn.style.borderColor = 'var(--gold)';
+  btn.style.fontWeight = '500';
+  userAnswers[qi] = oi;
+
+  // Check if all answered
+  const allAnswered = userAnswers.every(a => a !== null);
+  const submitBtn = document.getElementById('submitBtn');
+  if (allAnswered) {
+    submitBtn.style.boxShadow = '0 0 0 3px rgba(201,168,76,0.3)';
+  }
+}
+
+function submitQuiz() {
+  if (!currentQuizData) return;
+  const unanswered = userAnswers.findIndex(a => a === null);
+  if (unanswered !== -1) {
+    alert(`Please answer question ${unanswered + 1} before submitting.`);
+    return;
+  }
+
+  let score = 0;
+  const qs = currentQuizData.questions;
+
+  // Color all options
+  qs.forEach((q, qi) => {
+    const allBtns = document.querySelectorAll(`[data-qi="${qi}"].quiz-opt`);
+    allBtns.forEach((b, oi) => {
+      b.disabled = true;
+      b.style.background = '';
+      b.style.borderColor = '';
+      b.style.fontWeight = '';
+      if (oi === q.correct) b.classList.add('correct');
+      else if (oi === userAnswers[qi] && userAnswers[qi] !== q.correct) b.classList.add('wrong');
+    });
+    if (userAnswers[qi] === q.correct) score++;
+  });
+
+  // Show score
+  const scoreEl = document.getElementById('quizScore');
+  scoreEl.style.display = 'inline';
+  scoreEl.textContent = `${score}/${qs.length} correct`;
+  scoreEl.style.color = score === qs.length ? 'var(--green)' : score >= qs.length/2 ? 'var(--gold)' : 'var(--red)';
+
+  // Build feedback
+  const feedbackBody = document.getElementById('quizFeedbackBody');
+  feedbackBody.innerHTML = `
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:0.25rem;">
+        ${score === qs.length ? '🏆 Perfect score!' : score >= qs.length/2 ? '👍 Good effort!' : '📚 Keep studying!'}
+      </div>
+      <div style="color:var(--muted);font-size:0.85rem;">You got <strong>${score} out of ${qs.length}</strong> questions right.</div>
+    </div>
+    ${qs.map((q, qi) => {
+      const correct = userAnswers[qi] === q.correct;
+      return `<div style="margin-bottom:1.25rem;padding:1rem;border-radius:0.6rem;background:${correct ? '#f0f9f4' : '#fff5f5'};border:1px solid ${correct ? '#b8deca' : '#f5c0bc'};">
+        <div style="font-weight:500;margin-bottom:0.4rem;">${correct ? '✅' : '❌'} Q${qi+1}: ${q.q}</div>
+        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.4rem;">
+          Your answer: <strong>${q.options[userAnswers[qi]]}</strong>
+          ${!correct ? ` · Correct: <strong style="color:var(--green)">${q.options[q.correct]}</strong>` : ''}
+        </div>
+        <div style="font-size:0.85rem;line-height:1.6;color:var(--ink);border-top:1px solid rgba(0,0,0,0.06);padding-top:0.5rem;margin-top:0.5rem;">
+          💡 ${q.explanation}
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+
+  document.getElementById('quizFeedback').style.display = 'block';
+  document.getElementById('submitBtn').style.display = 'none';
+
+  // Save quiz to history
+  const lessonEntry = history[0];
+  if (lessonEntry && !lessonEntry.quiz) {
+    lessonEntry.quiz = {
+      score, total: qs.length,
+      questions: qs.map((q, qi) => ({
+        q: q.q,
+        options: q.options,
+        correct: q.correct,
+        userAnswer: userAnswers[qi],
+        explanation: q.explanation
+      }))
+    };
+    localStorage.setItem('em_history', JSON.stringify(history));
+    renderHistory();
+  }
+
+  document.getElementById('quizFeedback').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─── HISTORY ─────────────────────────────────────────────────────────────────
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (!history.length) {
+    list.innerHTML = '<div style="color:var(--muted); font-size:0.85rem; font-style:italic;">Nenhuma lição gerada ainda.</div>';
+    return;
+  }
+  list.innerHTML = history.map((h, i) => {
+    const topicLabel = h.topic.replace('_', ' ');
+    const hasQuiz = h.quiz ? `<span style="font-family:'DM Mono',monospace;font-size:0.65rem;background:${h.quiz.score===h.quiz.total?'#f0f9f4':h.quiz.score>=h.quiz.total/2?'#fff8e7':'#fff5f5'};color:${h.quiz.score===h.quiz.total?'var(--green)':h.quiz.score>=h.quiz.total/2?'var(--gold)':'var(--red)'};border-radius:2rem;padding:0.2rem 0.6rem;border:1px solid currentColor;">Quiz: ${h.quiz.score}/${h.quiz.total}</span>` : '<span style="font-size:0.65rem;color:var(--muted);font-family:'DM Mono',monospace;">no quiz</span>';
+    return `<div class="history-item" onclick="showHistoryItem(${i})">
+      <div style="display:flex;flex-direction:column;gap:0.3rem;">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <div class="htopic">${topicLabel}</div>
+          ${hasQuiz}
+        </div>
+        <div style="font-size:0.75rem; color:var(--muted);">${h.level}</div>
+      </div>
+      <div class="htime">${h.date} ${h.time}</div>
+    </div>`;
+  }).join('');
+}
+
+function showHistoryItem(idx) {
+  const item = history[idx];
+  const detail = document.getElementById('historyDetail');
+
+  // Show lesson content
+  let html = `<div class="lesson-card" style="margin-bottom:1rem;">
+    <div class="lesson-header">
+      <span class="lesson-type">${item.topic.replace('_',' ').toUpperCase()} — ${item.level}</span>
+      <span style="font-size:0.75rem;color:var(--muted);font-family:'DM Mono',monospace;">${item.date} ${item.time}</span>
+    </div>
+    <div class="lesson-body fade-in">${item.content}</div>
+  </div>`;
+
+  // If quiz exists, show it
+  if (item.quiz) {
+    const q = item.quiz;
+    html += `<div class="lesson-card">
+      <div class="lesson-header">
+        <span class="lesson-type">📊 QUIZ RESULTS — ${q.score}/${q.total} CORRECT</span>
+      </div>
+      <div class="lesson-body">
+        ${q.questions.map((qq, qi) => {
+          const correct = qq.userAnswer === qq.correct;
+          return `<div style="margin-bottom:1.25rem;padding:1rem;border-radius:0.6rem;background:${correct?'#f0f9f4':'#fff5f5'};border:1px solid ${correct?'#b8deca':'#f5c0bc'};">
+            <div style="font-weight:500;margin-bottom:0.4rem;">${correct?'✅':'❌'} Q${qi+1}: ${qq.q}</div>
+            <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.4rem;">
+              Your answer: <strong>${qq.options[qq.userAnswer]}</strong>
+              ${!correct ? ` · Correct: <strong style="color:var(--green)">${qq.options[qq.correct]}</strong>` : ''}
+            </div>
+            <div style="font-size:0.85rem;line-height:1.6;color:var(--ink);border-top:1px solid rgba(0,0,0,0.06);padding-top:0.5rem;margin-top:0.5rem;">💡 ${qq.explanation}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  } else {
+    html += `<div style="color:var(--muted);font-size:0.85rem;font-style:italic;padding:0.5rem 0;">No quiz taken for this lesson.</div>`;
+  }
+
+  detail.innerHTML = html;
+  detail.style.display = 'block';
+  detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Also set lastLesson so quiz can be generated from history
+  lastLesson = item.content;
+}
+
+function updateStreak() {
+  document.getElementById('streakNum').textContent = streak;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+init();
+
+// Fix section-lesson display
+document.getElementById('section-lesson').style.display = 'contents';
+</script>
+</body>
+</html>
